@@ -63,6 +63,204 @@ func TestBinaryTree_Add_Builds_Correct_Tree_PreOrder(t *testing.T) {
 	}
 }
 
+func TestBinaryTree_Remove_Empty(t *testing.T) {
+	tree := new(BinaryTree[int])
+
+	if tree.Remove(10) {
+		t.Error("Removing a value from an empty tree should return false")
+	}
+
+	if tree.Count != 0 {
+		t.Error("After empty remove, count was not 0: ", tree.Count)
+	}
+}
+
+func TestBinaryTree_Remove_Root_Sole(t *testing.T) {
+	tree := new(BinaryTree[int])
+	tree.Add(10)
+
+	if !tree.Remove(10) {
+		t.Error("Removing a value from an empty tree should return true")
+	}
+
+	if tree.Count != 0 {
+		t.Error("After remove, count was not 0: ", tree.Count)
+	}
+}
+
+func TestBinaryTree_Remove_Root_LeftChild(t *testing.T) {
+	tree := new(BinaryTree[int])
+	tree.Add(5)
+	tree.Add(4)
+
+	if !tree.Remove(5) {
+		t.Error("Removing a value from an empty tree should return true")
+	}
+
+	if tree.Count != 1 {
+		t.Error("After remove, count was not 0: ", tree.Count)
+	}
+
+	if !orderMatches(tree.InOrder, []int{4}) {
+		t.Error("Tree does not contain the expected content (in-order)")
+	}
+}
+
+func TestBinaryTree_Remove_Root_RightChild(t *testing.T) {
+	tree := new(BinaryTree[int])
+	tree.Add(5)
+	tree.Add(6)
+
+	if !tree.Remove(5) {
+		t.Error("Removing a value from an empty tree should return true")
+	}
+
+	if tree.Count != 1 {
+		t.Error("After remove, count was incorrect: ", tree.Count)
+	}
+
+	if !orderMatches(tree.InOrder, []int{6}) {
+		t.Error("Tree does not contain the expected content (in-order)")
+	}
+}
+
+func TestBinaryTree_Remove_Root_TwoChildren(t *testing.T) {
+	tree := new(BinaryTree[int])
+	tree.Add(5)
+	tree.Add(4)
+	tree.Add(6)
+
+	if !tree.Remove(5) {
+		t.Error("Removing a value from an empty tree should return true")
+	}
+
+	if tree.Count != 2 {
+		t.Error("After remove, count was incorrect: ", tree.Count)
+	}
+
+	if !orderMatches(tree.PreOrder, []int{4, 6}) {
+		t.Error("Tree does not contain the expected content (pre-order)")
+	}
+}
+
+func TestBinaryTree_Remove_Leaf_Left(t *testing.T) {
+	tree := new(BinaryTree[int])
+	tree.Add(5)
+	tree.Add(4)
+	tree.Add(6)
+
+	if !tree.Remove(4) {
+		t.Error("Removing a value from an empty tree should return true")
+	}
+
+	if tree.Count != 2 {
+		t.Error("After remove, count was incorrect: ", tree.Count)
+	}
+
+	if !orderMatches(tree.PreOrder, []int{5, 6}) {
+		t.Error("Tree does not contain the expected content (pre-order)")
+	}
+}
+
+func TestBinaryTree_Remove_Leaf_Right(t *testing.T) {
+	tree := new(BinaryTree[int])
+	tree.Add(5)
+	tree.Add(4)
+	tree.Add(6)
+
+	if !tree.Remove(6) {
+		t.Error("Removing a value from an empty tree should return true")
+	}
+
+	if tree.Count != 2 {
+		t.Error("After remove, count was incorrect: ", tree.Count)
+	}
+
+	if !orderMatches(tree.PreOrder, []int{5, 4}) {
+		t.Error("Tree does not contain the expected content (pre-order)")
+	}
+}
+
+func TestBinaryTree_Remove_Inner_Left_Only(t *testing.T) {
+	tree := new(BinaryTree[int])
+	tree.Add(5)
+	tree.Add(3)
+	tree.Add(2)
+
+	if !tree.Remove(3) {
+		t.Error("Removing a value from an empty tree should return true")
+	}
+
+	if tree.Count != 2 {
+		t.Error("After remove, count was incorrect: ", tree.Count)
+	}
+
+	if !orderMatches(tree.InOrder, []int{2, 5}) {
+		t.Error("Tree does not contain the expected content (pre-order)")
+	}
+}
+
+func TestBinaryTree_Remove_Inner_Right_Only(t *testing.T) {
+	tree := new(BinaryTree[int])
+	tree.Add(5)
+	tree.Add(3)
+	tree.Add(4)
+
+	if !tree.Remove(3) {
+		t.Error("Removing a value from an empty tree should return true")
+	}
+
+	if tree.Count != 2 {
+		t.Error("After remove, count was incorrect: ", tree.Count)
+	}
+
+	if !orderMatches(tree.InOrder, []int{4, 5}) {
+		t.Error("Tree does not contain the expected content (pre-order)")
+	}
+}
+
+func TestBinaryTree_Remove_Inner_Both(t *testing.T) {
+	tree := new(BinaryTree[int])
+	tree.Add(5)
+	tree.Add(3)
+	tree.Add(4)
+	tree.Add(2)
+
+	if !tree.Remove(3) {
+		t.Error("Removing a value from an empty tree should return true")
+	}
+
+	if tree.Count != 3 {
+		t.Error("After remove, count was incorrect: ", tree.Count)
+	}
+
+	if !orderMatches(tree.InOrder, []int{2, 4, 5}) {
+		t.Error("Tree does not contain the expected content (pre-order)")
+	}
+}
+
+func TestBinaryTree_Remove_Inner_Deep(t *testing.T) {
+	tree := new(BinaryTree[int])
+	start := []int{5, 20, 10, 30, 7, 15, 25, 35, 6, 9, 23, 27, 28}
+	expected := []int{5, 6, 7, 9, 10, 15, 20, 23, 25, 27, 28, 35}
+
+	for _, value := range start {
+		tree.Add(value)
+	}
+
+	if !tree.Remove(30) {
+		t.Error("Removing a value from an empty tree should return true")
+	}
+
+	if tree.Count != len(start)-1 {
+		t.Error("After remove, count was incorrect: ", tree.Count)
+	}
+
+	if !orderMatches(tree.InOrder, expected) {
+		t.Error("Tree does not contain the expected content (in-order)")
+	}
+}
+
 func TestBinaryTree_Add_From_Empty_Adds_Root(t *testing.T) {
 	tree := new(BinaryTree[int])
 	tree.Add(5)
@@ -70,6 +268,49 @@ func TestBinaryTree_Add_From_Empty_Adds_Root(t *testing.T) {
 	if !orderMatches(tree.InOrder, []int{5}) {
 		t.Error("Tree does not contain the expected content (in-order)")
 	}
+}
+
+func TestBinaryTree_Contains_Empty_Tree(t *testing.T) {
+	tree := new(BinaryTree[int])
+	if tree.Contains(0) {
+		t.Error("The tree should not contain any values")
+	}
+}
+
+func TestBinaryTree_Contains_Only_Root(t *testing.T) {
+	tree := new(BinaryTree[int])
+	tree.Add(5)
+
+	if !tree.Contains(5) {
+		t.Error("The tree should contain 5")
+	}
+
+	if tree.Contains(0) {
+		t.Error("The tree should not contain 0")
+	}
+}
+
+func TestBinaryTree_Contains_Many(t *testing.T) {
+	tree := new(BinaryTree[int])
+	start := []int{5, 20, 10, 30, 7, 15, 25, 35, 6, 9, 23, 27, 28}
+	missing := []int{1, 3, 12, 22, 29, 36}
+
+	for _, value := range start {
+		tree.Add(value)
+	}
+
+	for _, value := range start {
+		if !tree.Contains(value) {
+			t.Error("The tree should contain the value: ", value)
+		}
+	}
+
+	for _, value := range missing {
+		if tree.Contains(value) {
+			t.Error("The tree should not contain the value: ", value)
+		}
+	}
+
 }
 
 func orderMatches[T constraints.Ordered](order func(func(value T)), expected []T) bool {
