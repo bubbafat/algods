@@ -186,7 +186,7 @@ func (t *BinaryTree[T]) Remove(value T) bool {
 		return true
 	}
 
-	// case 3: node's right child has a left child. replace node node's right child's left-most child
+	// case 3: node's right child has a left child. replace node's right child's left-most child
 	leftMost := node.leftMostRightChild()
 
 	leftMost.parent.setLeftChild(leftMost.right)
