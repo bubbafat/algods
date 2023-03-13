@@ -22,22 +22,20 @@ func (t *BinaryTree[T]) Add(value T) {
 	}
 
 	current := t.root
+	newNode := new(binaryTreeNode[T])
+	newNode.data = value
 
 	for true {
 		if value <= current.data {
 			if current.left == nil {
-				current.left = new(binaryTreeNode[T])
-				current.left.data = value
-				current.left.parent = current
+				current.setLeftChild(newNode)
 				return
 			} else {
 				current = current.left
 			}
 		} else {
 			if current.right == nil {
-				current.right = new(binaryTreeNode[T])
-				current.right.data = value
-				current.right.parent = current
+				current.setRightChild(newNode)
 				return
 			} else {
 				current = current.right
@@ -80,9 +78,24 @@ func (n *binaryTreeNode[T]) removeImmediateLeafChild(child *binaryTreeNode[T]) {
 	panic("Attempt to remove a child node that isn't actually a child node")
 }
 
+func (n *binaryTreeNode[T]) replaceImmediateChild(child *binaryTreeNode[T], replacement *binaryTreeNode[T]) {
+
+	if n.left == child {
+		n.setLeftChild(replacement)
+		return
+	}
+
+	if n.right == child {
+		n.setRightChild(replacement)
+		return
+	}
+
+	panic("Attempt to replace a child node that isn't actually a child node")
+}
+
 func (n *binaryTreeNode[T]) rightMostLeftChild() *binaryTreeNode[T] {
 	current := n.left
-	for !current.isLeaf() {
+	for current.right != nil {
 		current = current.right
 	}
 
@@ -91,19 +104,55 @@ func (n *binaryTreeNode[T]) rightMostLeftChild() *binaryTreeNode[T] {
 
 func (n *binaryTreeNode[T]) leftMostRightChild() *binaryTreeNode[T] {
 	current := n.right
-	for !current.isLeaf() {
+	for current.left != nil {
 		current = current.left
 	}
 
 	return current
 }
 
+func (n *binaryTreeNode[T]) children() int {
+	switch {
+	case n.left == nil && n.right == nil:
+		return 0
+	case n.left != nil && n.right != nil:
+		return 2
+	default:
+		return 1
+	}
+}
+
 func (n *binaryTreeNode[T]) isLeaf() bool {
-	return n.left == nil && n.right == nil
+	if n == nil {
+		panic("whoa")
+	}
+
+	return n.children() == 0
 }
 
 func (n *binaryTreeNode[T]) isRoot() bool {
 	return n.parent == nil
+}
+
+func (n *binaryTreeNode[T]) setLeftChild(child *binaryTreeNode[T]) {
+	n.left = child
+	if child != nil {
+		child.parent = n
+	}
+}
+
+func (n *binaryTreeNode[T]) setRightChild(child *binaryTreeNode[T]) {
+	n.right = child
+	if child != nil {
+		child.parent = n
+	}
+}
+
+func (t *BinaryTree[T]) setRoot(child *binaryTreeNode[T]) {
+	t.root = child
+	if child != nil {
+		child.parent = nil
+	}
 }
 
 func (t *BinaryTree[T]) Remove(value T) bool {
@@ -115,26 +164,41 @@ func (t *BinaryTree[T]) Remove(value T) bool {
 
 	t.Count--
 
-	if node.isLeaf() {
+	// case 1: node has no right child, node.left replaces node
+	if node.right == nil {
 		if node.isRoot() {
-			t.root = nil
-			return true
+			t.setRoot(node.left)
+		} else {
+			node.parent.replaceImmediateChild(node, node.left)
 		}
-
-		node.parent.removeImmediateLeafChild(node)
 		return true
 	}
 
-	if node.left != nil {
-		replaceLeaf := node.rightMostLeftChild()
-		node.data = replaceLeaf.data
-		replaceLeaf.parent.removeImmediateLeafChild(replaceLeaf)
+	// case 2: node's right child has not left child, node's right child replaces current
+	if node.right.left == nil {
+		node.right.setLeftChild(node.left)
+
+		if node.isRoot() {
+			t.setRoot(node.right)
+		} else {
+			node.parent.replaceImmediateChild(node, node.right)
+		}
 		return true
 	}
 
-	replaceLeaf := node.leftMostRightChild()
-	node.data = replaceLeaf.data
-	replaceLeaf.parent.removeImmediateLeafChild(replaceLeaf)
+	// case 3: node's right child has a left child. replace node node's right child's left-most child
+	leftMost := node.leftMostRightChild()
+
+	leftMost.parent.setLeftChild(leftMost.right)
+	leftMost.setLeftChild(node.left)
+	leftMost.setRightChild(node.right)
+
+	if node.isRoot() {
+		t.setRoot(leftMost)
+	} else {
+		node.parent.replaceImmediateChild(node, leftMost)
+	}
+
 	return true
 }
 

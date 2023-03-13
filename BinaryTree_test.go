@@ -3,6 +3,7 @@ package algods
 import (
 	"fmt"
 	"golang.org/x/exp/constraints"
+	"math/rand"
 	"reflect"
 	"testing"
 )
@@ -138,7 +139,7 @@ func TestBinaryTree_Remove_Root_TwoChildren(t *testing.T) {
 		t.Error("After remove, count was incorrect: ", tree.Count)
 	}
 
-	if !orderMatches(tree.PreOrder, []int{4, 6}) {
+	if !orderMatches(tree.PreOrder, []int{6, 4}) {
 		t.Error("Tree does not contain the expected content (pre-order)")
 	}
 }
@@ -267,6 +268,37 @@ func TestBinaryTree_Add_From_Empty_Adds_Root(t *testing.T) {
 
 	if !orderMatches(tree.InOrder, []int{5}) {
 		t.Error("Tree does not contain the expected content (in-order)")
+	}
+}
+
+func TestBinaryTree_Random_Big(t *testing.T) {
+	tree := new(BinaryTree[int])
+	data := make([]int, 0)
+
+	for i := 0; i < 25000; i++ {
+		value := rand.Int()
+		data = append(data, value)
+		tree.Add(value)
+	}
+
+	if tree.Count != len(data) {
+		t.Error("Count should be equal to data size: ", len(data))
+	}
+
+	for _, v := range data {
+		if !tree.Contains(v) {
+			t.Error("Tree should contain ", v)
+		}
+	}
+
+	for _, v := range data {
+		if !tree.Remove(v) {
+			t.Error("Should have been able to remove from tree: ", v)
+		}
+	}
+
+	if tree.Count != 0 {
+		t.Error("Tree should be empty")
 	}
 }
 
