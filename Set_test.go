@@ -155,3 +155,98 @@ func TestSet_Intersection_All_Intersect(t *testing.T) {
 		t.Error("All values should have been removed from the set", count)
 	}
 }
+
+func TestSet_Difference(t *testing.T) {
+	all := new(Set[int])
+	odds := new(Set[int])
+	evens := new(Set[int])
+
+	for i := 0; i < 100; i++ {
+		if i%2 == 0 {
+			evens.Add(i)
+		} else {
+			odds.Add(i)
+		}
+
+		all.Add(i)
+	}
+
+	diff := all.Difference(evens)
+
+	if !setsEqual(diff, odds) {
+		t.Error("The diff set should be equal to the odds set")
+	}
+}
+
+func TestSet_Difference_AllSame(t *testing.T) {
+	all := new(Set[int])
+
+	for i := 0; i < 100; i++ {
+		all.Add(i)
+	}
+
+	diff := all.Difference(all)
+
+	if count := diff.Count(); count != 0 {
+		t.Error("The diff set should have a count of zero", count)
+	}
+}
+
+func TestSet_SymmetricDifference_All(t *testing.T) {
+	all := new(Set[int])
+	odds := new(Set[int])
+	evens := new(Set[int])
+
+	for i := 0; i < 100; i++ {
+		if i%2 == 0 {
+			evens.Add(i)
+		} else {
+			odds.Add(i)
+		}
+
+		all.Add(i)
+	}
+
+	result := evens.SymmetricDifference(odds)
+
+	if !setsEqual(all, result) {
+		t.Error("The symmetric diff of evens and odds should be all")
+	}
+}
+
+func TestSet_SymmetricDifference_Evens_From_All(t *testing.T) {
+	all := new(Set[int])
+	odds := new(Set[int])
+	evens := new(Set[int])
+
+	for i := 0; i < 100; i++ {
+		if i%2 == 0 {
+			evens.Add(i)
+		} else {
+			odds.Add(i)
+		}
+
+		all.Add(i)
+	}
+
+	result := all.SymmetricDifference(odds)
+
+	if !setsEqual(evens, result) {
+		t.Error("The symmetric  diff of all and odds should be evens")
+	}
+}
+
+func setsEqual(left *Set[int], right *Set[int]) bool {
+	if left.Count() != right.Count() {
+		return false
+	}
+
+	equal := true
+
+	left.ForEach(func(value int) bool {
+		equal = equal && right.Contains(value)
+		return equal
+	})
+
+	return equal
+}

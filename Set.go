@@ -79,6 +79,25 @@ func (s *Set[T]) Intersection(other *Set[T]) *Set[T] {
 	return result
 }
 
+func (s *Set[T]) Difference(other *Set[T]) *Set[T] {
+	result := new(Set[T])
+
+	for _, x := range s.data {
+		if !other.Contains(x) {
+			result.Add(x)
+		}
+	}
+
+	return result
+}
+
+func (s *Set[T]) SymmetricDifference(other *Set[T]) *Set[T] {
+	union := s.Union(other)
+	intersection := s.Intersection(other)
+
+	return union.Difference(intersection)
+}
+
 func (s *Set[T]) ForEach(callback func(value T) bool) {
 	for _, x := range s.data {
 		if !callback(x) {
